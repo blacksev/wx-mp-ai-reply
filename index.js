@@ -14,7 +14,7 @@ app.use(logger);
 
 // 处理消息
 app.all("/", async (req, res) => {
-  console.log('消息推送', req.body)
+  console.log('消息推送', JSON.stringify(req.body))
   res.send('success')
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
@@ -30,11 +30,11 @@ app.all("/", async (req, res) => {
         "temperature": 0.7
       })
     }).json();
-    console.log(response);
+    console.log(JSON.stringify(response));
     if (response && response.choices) {
       const replyMessage = response.choices[0].message.content;
       console.log(replyMessage)
-      await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
+      const sendRes = await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
         // 资源复用情况下，参数from_appid应写明发起方appid
         // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
         {
@@ -46,7 +46,8 @@ app.all("/", async (req, res) => {
             }
           })
         }
-      )
+      ).json();
+      console.log(JSON.stringify(sendRes));
     }
   }
 });
