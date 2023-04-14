@@ -1,14 +1,12 @@
 const path = require("path");
 const express = require("express");
-const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const got = require("got");
 const logger = morgan("tiny");
 
 const app = express();
-app.use(bodyParser.raw());
-app.use(bodyParser.json({}));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({}));
+app.use(express.urlencoded({ extended: true }));
 app.use(logger);
 
 const messageStore = {};

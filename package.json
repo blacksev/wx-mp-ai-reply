@@ -9,12 +9,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "got": "^10.4.0",
     "morgan": "^1.10.0",
-    "sha1": "^1.1.1"
   },
   "engines": {
     "node": ">=16.0.0"
