@@ -63,8 +63,9 @@ app.all("/", async (req, res) => {
     // } catch (error) {
     //   console.log(error);
     // }
+  } else {
+    res.send("success");
   }
-  res.send("success");
 });
 
 // 小程序调用，获取微信 Open ID
