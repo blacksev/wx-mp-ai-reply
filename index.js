@@ -1,45 +1,42 @@
 const path = require("path");
 const express = require("express");
-const cors = require("cors");
 const morgan = require("morgan");
-const { init: initDB, Counter } = require("./db");
-
+const got = import("got");
 const logger = morgan("tiny");
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors());
 app.use(logger);
 
 // 首页
 app.get("/", async (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// 更新计数
-app.post("/api/count", async (req, res) => {
-  const { action } = req.body;
-  if (action === "inc") {
-    await Counter.create();
-  } else if (action === "clear") {
-    await Counter.destroy({
-      truncate: true,
+  console.log('消息推送', req.body)
+  const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
+  if (MsgType === 'text') {
+    const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        "model": "gpt-3.5-turbo",
+        "messages": [{ "role": "user", "content": Content }],
+        "temperature": 0.7
+      },
+      json: true
     });
+    if (response && response.choices && response.choices.length > 0) { 
+      const replyMessage = response.choices[0].message.content;
+      res.send({
+        ToUserName: FromUserName,
+        FromUserName: ToUserName,
+        CreateTime: CreateTime,
+        MsgType: 'text',
+        Content: replyMessage
+      });
+    }
   }
-  res.send({
-    code: 0,
-    data: await Counter.count(),
-  });
-});
-
-// 获取计数
-app.get("/api/count", async (req, res) => {
-  const result = await Counter.count();
-  res.send({
-    code: 0,
-    data: result,
-  });
 });
 
 // 小程序调用，获取微信 Open ID
@@ -52,7 +49,6 @@ app.get("/api/wx_openid", async (req, res) => {
 const port = process.env.PORT || 80;
 
 async function bootstrap() {
-  await initDB();
   app.listen(port, () => {
     console.log("启动成功", port);
   });

@@ -1,21 +1,20 @@
 {
-  "name": "wxcloudrun-express",
+  "name": "wx-mp-ai-reply",
   "version": "1.0.0",
-  "description": "微信云托管 express 框架模版",
+  "description": "基于泽科巴AI实现自动回复客服消息",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "author": "",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.16.4",
-    "morgan": "^1.10.0",
-    "mysql2": "^2.3.2",
-    "sequelize": "^6.8.0"
+    "got": "^12.6.0",
+    "morgan": "^1.10.0"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   }
 }
