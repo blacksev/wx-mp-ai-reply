@@ -11,57 +11,65 @@ app.use(bodyParser.json({}))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(logger);
 
+const messageStore = {};
+
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // 处理消息
 app.all("/", async (req, res) => {
   console.log('消息推送', JSON.stringify(req.body))
-  const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
+  const { ToUserName, FromUserName, MsgType, Content, CreateTime, MsgId } =
+    req.body;
   if (MsgType === 'text') {
-    try {
-      const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
-        headers: {
-          'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "model": "gpt-3.5-turbo",
-          "messages": [{ "role": "user", "content": Content }],
-          "temperature": 0.7
-        })
-      }).json();
+    if (messageStore[MsgId] === undefined) {
+      messageStore[MsgId] = '';
+      try {
+        const response = await got
+          .post("https://exapi-chat.zecoba.cn/v1/chat/completions", {
+            headers: {
+              Authorization: `Bearer ${process.env.ZECOBA_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-3.5-turbo",
+              messages: [{ role: "user", content: Content }],
+              temperature: 0.7,
+            }),
+          })
+          .json();
 
-
-      // console.log(JSON.stringify(response));
-      if (response && response.choices) {
-        const replyMessage = response.choices[0].message.content;
-        console.log(replyMessage)
-        res.send({
-          ToUserName: FromUserName,
-          FromUserName: ToUserName,
-          CreateTime: CreateTime,
-          MsgType: "text",
-          Content: replyMessage,
-        });
-        // const sendRes = await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
-        //   // 资源复用情况下，参数from_appid应写明发起方appid
-        //   // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
-
-        //   {
-        //     headers: {
-        //       'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //       touser: FromUserName, // 一般是消息推送body的FromUserName值，为用户的openid
-        //       msgtype: "text",
-        //       text: {
-        //         content: replyMessage
-        //       }
-        //     }),
-        //   }
-        // ).text();
-        // console.log(sendRes);
+        // console.log(JSON.stringify(response));
+        if (response && response.choices) {
+          const replyMessage = response.choices[0].message.content;
+          console.log(replyMessage);
+          messageStore[MsgId] = replyMessage;
+          return res.send({
+            ToUserName: FromUserName,
+            FromUserName: ToUserName,
+            CreateTime: CreateTime,
+            MsgType: "text",
+            Content: messageStore[MsgId],
+          });
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
+    } else { 
+      for (let i = 0; i < 100; i++) {
+        if (messageStore[MsgId]) {
+          delete messageStore[MsgId];
+          return res.send({
+            ToUserName: FromUserName,
+            FromUserName: ToUserName,
+            CreateTime: CreateTime,
+            MsgType: "text",
+            Content: messageStore[MsgId],
+          });
+        }
+        await timeout(50);
+      }
     }
   } else {
     res.send("success");
