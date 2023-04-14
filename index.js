@@ -51,7 +51,6 @@ app.all("/", async (req, res) => {
         });
     }
     for (let i = 0; i < 100; i++) {
-      console.log(i);
       if (messageStore[MsgId]) {
         res.send({
           ToUserName: FromUserName,
@@ -64,9 +63,7 @@ app.all("/", async (req, res) => {
       }
       await timeout(50);
     }
-  } else {
-    res.send("success");
-  }
+  } 
 });
 
 // 小程序调用，获取微信 Open ID
