@@ -33,6 +33,7 @@ app.all("/", async (req, res) => {
     console.log(response);
     if (response && response.choices && response.choices.length > 0) {
       const replyMessage = response.choices[0].message.content;
+      console.log(replyMessage)
       return res.send({
         ToUserName: FromUserName,
         FromUserName: ToUserName,
