@@ -60,7 +60,6 @@ app.all("/", async (req, res) => {
           MsgType: "text",
           Content: messageStore[MsgId],
         });
-        delete messageStore[MsgId];
         return;
       }
       await timeout(50);
