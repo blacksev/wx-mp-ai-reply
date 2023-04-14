@@ -52,14 +52,15 @@ app.all("/", async (req, res) => {
     }
     for (let i = 0; i < 100; i++) {
       if (messageStore[MsgId]) {
-        delete messageStore[MsgId];
-        return res.send({
+        res.send({
           ToUserName: FromUserName,
           FromUserName: ToUserName,
           CreateTime: CreateTime,
           MsgType: "text",
           Content: messageStore[MsgId],
         });
+        delete messageStore[MsgId];
+        return;
       }
       await timeout(50);
     }
