@@ -10,9 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(logger);
 
-// 首页
-app.all("/", async (req, res) => {
-  console.log('消息推送', req.body)
+app.get("/", async (req, res) => { 
   // GET请求携带参数是个参数signature,timestamp,nonce,echostr
   const { signature, timestamp, nonce, echostr } = req.query;
 
@@ -30,10 +28,15 @@ app.all("/", async (req, res) => {
   // 获得加密后的字符串可与signature对比，验证标识该请求来源于微信服务器
   if (shaStr === signature) {
     // 确认此次GET请求来自微信服务器，请原样返回echostr参数内容，则接入生效
-    if (echostr) return res.send(echostr);
+    if (echostr) res.send(echostr);
   } else { 
-    return res.send('failed');
+    res.send('failed');
   }
+});
+
+// 处理消息
+app.post("/", async (req, res) => {
+  console.log('消息推送', req.body)
   
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
