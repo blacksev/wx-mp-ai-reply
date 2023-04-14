@@ -18,6 +18,7 @@ app.all("/", async (req, res) => {
   
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
+    
     const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
       headers: {
         'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
@@ -29,6 +30,7 @@ app.all("/", async (req, res) => {
         "temperature": 0.7
       }
     }).json();
+    console.log(response);
     if (response && response.choices && response.choices.length > 0) {
       const replyMessage = response.choices[0].message.content;
       return res.send({
