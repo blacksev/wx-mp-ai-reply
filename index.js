@@ -53,7 +53,7 @@ app.all("/", async (req, res) => {
         }
       ).text();
       console.log(sendRes);
-      } catch (error) {
+      } catch (err) {
         console.log(err);
       }
     }
