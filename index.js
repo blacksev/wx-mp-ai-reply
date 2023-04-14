@@ -51,8 +51,8 @@ app.all("/", async (req, res) => {
             }
           }),
         }
-      ).json();
-      console.log(JSON.stringify(sendRes));
+      ).text();
+      console.log(sendRes);
       } catch (error) {
         console.log(err);
       }
