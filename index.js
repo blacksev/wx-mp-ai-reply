@@ -1,13 +1,15 @@
 const path = require("path");
 const express = require("express");
+const bodyParser = require('body-parser')
 const morgan = require("morgan");
 const got = import("got");
 const logger = morgan("tiny");
 const sha1 = require("sha1");
 
 const app = express();
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(bodyParser.raw())
+app.use(bodyParser.json({}))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(logger);
 
 app.get("/", async (req, res) => { 
