@@ -18,7 +18,7 @@ app.all("/", async (req, res) => {
   res.send('success')
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
-    
+
     const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
       headers: {
         'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
@@ -34,10 +34,15 @@ app.all("/", async (req, res) => {
     if (response && response.choices) {
       const replyMessage = response.choices[0].message.content;
       console.log(replyMessage)
-      const sendRes = await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
+      try {
+        const sendRes = await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
         // 资源复用情况下，参数from_appid应写明发起方appid
         // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
+
         {
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             touser: FromUserName, // 一般是消息推送body的FromUserName值，为用户的openid
             msgtype: "text",
@@ -45,10 +50,12 @@ app.all("/", async (req, res) => {
               content: replyMessage
             }
           }),
-          json: true,
         }
       ).json();
       console.log(JSON.stringify(sendRes));
+      } catch (error) {
+        console.log(err);
+      }
     }
   }
 });
