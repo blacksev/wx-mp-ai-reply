@@ -15,7 +15,7 @@ app.use(logger);
 // 处理消息
 app.all("/", async (req, res) => {
   console.log('消息推送', req.body)
-  
+  res.send('success')
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
     
@@ -34,16 +34,21 @@ app.all("/", async (req, res) => {
     if (response && response.choices) {
       const replyMessage = response.choices[0].message.content;
       console.log(replyMessage)
-      return res.send({
-        ToUserName: FromUserName,
-        FromUserName: ToUserName,
-        CreateTime: CreateTime,
-        MsgType: 'text',
-        Content: replyMessage
-      });
+      await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
+        // 资源复用情况下，参数from_appid应写明发起方appid
+        // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
+        {
+          body: JSON.stringify({
+            touser: FromUserName, // 一般是消息推送body的FromUserName值，为用户的openid
+            msgtype: "text",
+            text: {
+              content: replyMessage
+            }
+          })
+        }
+      )
     }
   }
-  res.send('success')
 });
 
 // 小程序调用，获取微信 Open ID
