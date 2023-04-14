@@ -24,11 +24,11 @@ app.all("/", async (req, res) => {
         'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: {
+      body: JSON.stringify({
         "model": "gpt-3.5-turbo",
         "messages": [{ "role": "user", "content": Content }],
         "temperature": 0.7
-      }
+      })
     }).json();
     console.log(response);
     if (response && response.choices && response.choices.length > 0) {
