@@ -4,7 +4,6 @@ const bodyParser = require('body-parser')
 const morgan = require("morgan");
 const got = require('got');
 const logger = morgan("tiny");
-const sha1 = require("sha1");
 
 const app = express();
 app.use(bodyParser.raw())
@@ -18,44 +17,45 @@ app.all("/", async (req, res) => {
   res.send('success')
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
+    try {
+      const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
+        headers: {
+          'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "model": "gpt-3.5-turbo",
+          "messages": [{ "role": "user", "content": Content }],
+          "temperature": 0.7
+        })
+      }).json();
 
-    const response = await got.post('https://exapi-chat.zecoba.cn/v1/chat/completions', {
-      headers: {
-        'Authorization': `Bearer ${process.env.ZECOBA_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "model": "gpt-3.5-turbo",
-        "messages": [{ "role": "user", "content": Content }],
-        "temperature": 0.7
-      })
-    }).json();
-    console.log(JSON.stringify(response));
-    if (response && response.choices) {
-      const replyMessage = response.choices[0].message.content;
-      console.log(replyMessage)
-      try {
+
+      console.log(JSON.stringify(response));
+      if (response && response.choices) {
+        const replyMessage = response.choices[0].message.content;
+        console.log(replyMessage)
         const sendRes = await got.post('http://api.weixin.qq.com/cgi-bin/message/custom/send',
-        // 资源复用情况下，参数from_appid应写明发起方appid
-        // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
+          // 资源复用情况下，参数from_appid应写明发起方appid
+          // url: 'http://api.weixin.qq.com/cgi-bin/message/custom/send?from_appid=wxxxxx'
 
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            touser: FromUserName, // 一般是消息推送body的FromUserName值，为用户的openid
-            msgtype: "text",
-            text: {
-              content: replyMessage
-            }
-          }),
-        }
-      ).text();
-      console.log(sendRes);
-      } catch (err) {
-        console.log(err);
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              touser: FromUserName, // 一般是消息推送body的FromUserName值，为用户的openid
+              msgtype: "text",
+              text: {
+                content: replyMessage
+              }
+            }),
+          }
+        ).text();
+        console.log(sendRes);
       }
+    } catch (error) {
+      console.log(error);
     }
   }
 });
