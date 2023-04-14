@@ -44,7 +44,8 @@ app.all("/", async (req, res) => {
             text: {
               content: replyMessage
             }
-          })
+          }),
+          json: true,
         }
       ).json();
       console.log(JSON.stringify(sendRes));
