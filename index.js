@@ -18,7 +18,7 @@ function timeout(ms) {
 }
 
 // 处理消息
-app.all("/", async (req, res) => {
+app.post("/", async (req, res) => {
   console.log("消息推送", JSON.stringify(req.body));
   const { ToUserName, FromUserName, MsgType, Content, CreateTime, MsgId } =
     req.body;
@@ -52,7 +52,7 @@ app.all("/", async (req, res) => {
     }
     for (let i = 0; i < 100; i++) {
       if (messageStore[MsgId]) {
-        res.send({
+        return res.send({
           ToUserName: FromUserName,
           FromUserName: ToUserName,
           CreateTime: CreateTime,
@@ -60,7 +60,7 @@ app.all("/", async (req, res) => {
           Content: messageStore[MsgId],
         });
       }
-      await timeout(50);
+      await timeout(100);
     }
   } 
 });
