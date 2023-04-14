@@ -51,6 +51,7 @@ app.all("/", async (req, res) => {
         });
     }
     for (let i = 0; i < 100; i++) {
+      console.log(i);
       if (messageStore[MsgId]) {
         res.send({
           ToUserName: FromUserName,
