@@ -2,7 +2,7 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require('body-parser')
 const morgan = require("morgan");
-import got from 'got';
+const got = require('got');
 const logger = morgan("tiny");
 const sha1 = require("sha1");
 
