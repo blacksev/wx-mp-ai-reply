@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(logger);
 
 // 首页
-app.get("/", async (req, res) => {
+app.all("/", async (req, res) => {
   console.log('消息推送', req.body)
   const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body
   if (MsgType === 'text') {
@@ -28,7 +28,7 @@ app.get("/", async (req, res) => {
     });
     if (response && response.choices && response.choices.length > 0) { 
       const replyMessage = response.choices[0].message.content;
-      res.send({
+      return res.send({
         ToUserName: FromUserName,
         FromUserName: ToUserName,
         CreateTime: CreateTime,
@@ -37,6 +37,7 @@ app.get("/", async (req, res) => {
       });
     }
   }
+  res.send('success')
 });
 
 // 小程序调用，获取微信 Open ID
