@@ -68,7 +68,9 @@ app.post("/", async (req, res) => {
       }
       await timeout(100);
     }
-  } 
+  } else { 
+    res.send('success');
+  }
 });
 
 const port = 80;
