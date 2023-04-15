@@ -15,9 +15,17 @@ function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+app.get("/", async (req, res) => { 
+  console.log("headers", JSON.stringify(req.headers));
+  console.log("body", JSON.stringify(req.body));
+  res.send('ok');
+})
+
 // 处理消息
 app.post("/", async (req, res) => {
-  console.log("消息推送", JSON.stringify(req.body));
+  console.log("headers", JSON.stringify(req.headers));
+  console.log("body", JSON.stringify(req.body));
+
   const { ToUserName, FromUserName, MsgType, Content, CreateTime, MsgId } =
     req.body;
   if (MsgType === "text") {
