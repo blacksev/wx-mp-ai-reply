@@ -1,4 +1,3 @@
-const path = require("path");
 const express = require("express");
 const morgan = require("morgan");
 const got = require("got");
@@ -15,24 +14,25 @@ function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-app.get("/", async (req, res) => { 
-  console.log("headers", JSON.stringify(req.headers));
+app.get("/", async (req, res) => {
   console.log("body", JSON.stringify(req.body));
-  res.send('ok');
-})
+  res.send("ok");
+});
 
 // 处理消息
 app.post("/", async (req, res) => {
-  console.log("headers", JSON.stringify(req.headers));
   console.log("body", JSON.stringify(req.body));
 
-  const { ToUserName, FromUserName, MsgType, Content, CreateTime, MsgId } =
-    req.body;
+  const { ToUserName, FromUserName, MsgType, Content, CreateTime } = req.body;
   if (MsgType === "text") {
-    if (messageStore[MsgId] === undefined) {
-      messageStore[MsgId] = "";
-      got
-        .post("https://exapi-chat.zecoba.cn/v1/chat/completions", {
+    res.setHeader("Content-Type", "application/json");
+    res.write(
+      `{"ToUserName":"${FromUserName}","FromUserName":"${ToUserName}","CreateTime":${CreateTime},"MsgType":"text","Content":"`
+    );
+    try {
+      const stream = got.stream.post(
+        "https://exapi-chat.zecoba.cn/v1/chat/completions",
+        {
           headers: {
             Authorization: `Bearer ${process.env.ZECOBA_API_KEY}`,
             "Content-Type": "application/json",
@@ -41,35 +41,40 @@ app.post("/", async (req, res) => {
             model: "gpt-3.5-turbo",
             messages: [{ role: "user", content: Content }],
             temperature: 0.7,
+            stream: true,
           }),
-        })
-        .json()
-        .then((response) => {
-          // console.log(JSON.stringify(response));
-          if (response && response.choices) {
-            const replyMessage = response.choices[0].message.content;
-            console.log(replyMessage);
-            messageStore[MsgId] = replyMessage;
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+        }
+      );
+
+      stream.on("data", (chunk) => {
+        const str = chunk
+          .toString()
+          .match(/content":"([^"])+\"/g)
+          ?.map((l) => l.slice(10, -1))
+          .join("");
+        if(str) res.write(str);
+      });
+
+      stream.on("end", () => {
+        console.log("Stream ended");
+        res.write('"}');
+        res.end();
+      });
+
+      stream.on("error", (error) => {
+        console.log(`Error: ${error.message}`);
+      });
+    } catch (error) {
+      console.error(error);
     }
-    for (let i = 0; i < 100; i++) {
-      if (messageStore[MsgId]) {
-        return res.send({
-          ToUserName: FromUserName,
-          FromUserName: ToUserName,
-          CreateTime: CreateTime,
-          MsgType: "text",
-          Content: messageStore[MsgId],
-        });
-      }
-      await timeout(100);
-    }
-  } else { 
-    res.send('success');
+  } else {
+    res.send({
+      ToUserName: FromUserName,
+      FromUserName: ToUserName,
+      CreateTime: CreateTime,
+      MsgType: "text",
+      Content: "不支持非文本的消息",
+    });
   }
 });
 
@@ -78,4 +83,3 @@ const port = 80;
 app.listen(port, () => {
   console.log("启动成功", port);
 });
-
